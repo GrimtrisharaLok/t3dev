@@ -1,6 +1,5 @@
 import {
-  Laptop,
-  LucideProps,
+  type LucideProps,
   Moon,
   SunMedium,
   Twitter,

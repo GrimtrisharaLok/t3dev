@@ -1,15 +1,10 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import {
-  SignInButton,
-  SignOutButton,
-  UserButton,
-  useUser,
-} from "@clerk/nextjs";
+import { SignInButton, useUser } from "@clerk/nextjs";
 
-import { RouterOutputs, api } from "@/utils/api";
+import { type RouterOutputs, api } from "@/utils/api";
 
-import { ThemeToggle } from "@/components/theme-toggle";
+// import { ThemeToggle } from "@/components/theme-toggle";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
