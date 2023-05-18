@@ -36,9 +36,7 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
 
   if (isLoading) return <LoadingPage />;
 
-  if (!data) return <div>404</div>;
-
-  console.log(username);
+  if (!data || data.username == null) return <div>404</div>;
 
   return (
     <>
@@ -78,7 +76,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
   const username = slug.replace("@", "");
 
-  ssg.users.getUserByUsername.prefetch({ username });
+  await ssg.users.getUserByUsername.prefetch({ username });
 
   return {
     props: {
@@ -88,7 +86,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
   };
 };
 
-export const getStaticPaths = async () => {
+export const getStaticPaths = () => {
   return { paths: [], fallback: "blocking" };
 };
 
