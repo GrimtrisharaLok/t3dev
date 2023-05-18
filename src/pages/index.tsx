@@ -9,13 +9,15 @@ import { type RouterOutputs, api } from "@/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
-import { LoadingPage } from "@/components/loading";
+import { LoadingPage, LoadingSpinner } from "@/components/loading";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
   const { user } = useUser();
+  const { toast } = useToast();
   const [input, setInput] = useState("");
 
   const ctx = api.useContext();
@@ -24,6 +26,23 @@ const CreatePostWizard = () => {
     onSuccess: () => {
       setInput("");
       void ctx.posts.getAll.invalidate();
+    },
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content;
+
+      if (errorMessage && errorMessage[0]) {
+        toast({
+          variant: "destructive",
+          title: "Failed to post",
+          description: errorMessage[0],
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to post",
+          description: "An error has occured",
+        });
+      }
     },
   });
 
@@ -43,9 +62,27 @@ const CreatePostWizard = () => {
         placeholder="Express yourself with an Emoji"
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (input !== "") {
+              mutate({ content: input });
+            }
+          }
+        }}
         disabled={isPosting}
       />
-      <Button onClick={() => mutate({ content: input })}>Post</Button>
+      {input !== "" && !isPosting && (
+        <Button disabled={isPosting} onClick={() => mutate({ content: input })}>
+          Post
+        </Button>
+      )}
+
+      {isPosting && (
+        <div className="flex items-center justify-center">
+          <LoadingSpinner size={20} />
+        </div>
+      )}
     </div>
   );
 };
