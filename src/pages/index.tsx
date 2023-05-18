@@ -15,10 +15,22 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
 import { LoadingPage } from "@/components/loading";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
   const { user } = useUser();
+  const [input, setInput] = useState("");
+
+  const ctx = api.useContext();
+
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
+    onSuccess: () => {
+      setInput("");
+      void ctx.posts.getAll.invalidate();
+    },
+  });
 
   if (!user) return null;
 
@@ -34,7 +46,11 @@ const CreatePostWizard = () => {
       <input
         className="grow bg-transparent outline-none"
         placeholder="Express yourself with an Emoji"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        disabled={isPosting}
       />
+      <Button onClick={() => mutate({ content: input })}>Post</Button>
     </div>
   );
 };
@@ -53,13 +69,13 @@ const PostView = (props: PostWithUser) => {
         width={48}
       />
       <div className="flex flex-col">
-        <div className="flex gap-1 font-normal text-slate-300">
+        <div className="flex gap-1 text-slate-300">
           <span>{`@${author.username}`}</span>
           <span className="font-thin">{`· ${dayjs(
             post.createdAt
           ).fromNow()}`}</span>
         </div>
-        <span>{post.content}</span>
+        <span className="text-2xl">{post.content}</span>
       </div>
     </div>
   );
@@ -74,7 +90,7 @@ const Feed = () => {
 
   return (
     <div className="flex flex-col">
-      {[...data, ...data]?.map((fullPost) => (
+      {data.map((fullPost) => (
         <PostView {...fullPost} key={fullPost.post.id} />
       ))}
     </div>
@@ -82,7 +98,7 @@ const Feed = () => {
 };
 
 const Home: NextPage = () => {
-  const { user, isLoaded: userLoaded, isSignedIn } = useUser();
+  const { isLoaded: userLoaded, isSignedIn } = useUser();
 
   // Start Fetching Early
   api.posts.getAll.useQuery();
