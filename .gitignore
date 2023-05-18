@@ -20,6 +20,9 @@ next-env.d.ts
 # production
 /build
 
+# Non-avaialble pre-production media
+/public/content
+
 # misc
 .DS_Store
 *.pem

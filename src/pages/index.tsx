@@ -1,7 +1,5 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-
-import { api } from "@/utils/api";
 import {
   SignInButton,
   SignOutButton,
@@ -9,13 +7,70 @@ import {
   useUser,
 } from "@clerk/nextjs";
 
+import { RouterOutputs, api } from "@/utils/api";
+
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Skeleton } from "@/components/ui/skeleton";
+
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import Image from "next/image";
+dayjs.extend(relativeTime);
+
+const CreatePostWizard = () => {
+  const { user } = useUser();
+
+  if (!user) return null;
+
+  return (
+    <div className="flex w-full gap-4">
+      <Image
+        className="h-12 w-12 rounded-full"
+        src={user.profileImageUrl}
+        alt="profileImg"
+        width={48}
+        height={48}
+      />
+      <input
+        className="grow bg-transparent outline-none"
+        placeholder="Express yourself"
+      />
+    </div>
+  );
+};
+
+type PostWithUser = RouterOutputs["posts"]["getAll"][number];
+const PostView = (props: PostWithUser) => {
+  const { post, author } = props;
+
+  return (
+    <div key={post.id} className="flex gap-3 border-b border-slate-500 p-4">
+      <Image
+        className="h-12 w-12 rounded-full"
+        src={author.profileImageUrl}
+        alt="Profile Image"
+        height={48}
+        width={48}
+      />
+      <div className="flex flex-col">
+        <div className="flex gap-1 font-normal text-slate-300">
+          <span>{`@${author.username}`}</span>
+          <span className="font-thin">{`· ${dayjs(
+            post.createdAt
+          ).fromNow()}`}</span>
+        </div>
+        <span>{post.content}</span>
+      </div>
+    </div>
+  );
+};
 
 const Home: NextPage = () => {
   const user = useUser();
 
   const { data, isLoading } = api.posts.getAll.useQuery();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!data) return <div>Something went wrong.</div>;
 
   return (
     <>
@@ -25,24 +80,21 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       {/* dark:from-[#2e026d] dark:to-[#15162c] */}
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-slate-100 to-slate-300 dark:from-slate-800 dark:to-slate-950">
-        <ThemeToggle />
-        <div>
-          {!user.isSignedIn && <SignInButton />}
-          {!!user.isSignedIn && (
-            <div>
-              <UserButton /> <SignOutButton />
+      <main className="flex h-screen justify-center">
+        <div className="h-full w-full border-x border-slate-500 md:max-w-4xl">
+          {/* <ThemeToggle /> */}
+          <div className="flex border-b border-slate-500 p-4">
+            {!user.isSignedIn && <SignInButton />}
+            {!!user.isSignedIn && <CreatePostWizard />}
+          </div>
+          {!isLoading && (
+            <div className="flex flex-col">
+              {[...data, ...data]?.map((fullPost) => (
+                <PostView {...fullPost} key={fullPost.post.id} />
+              ))}
             </div>
           )}
         </div>
-        {/* <Skeleton className="h-12 w-64" /> */}
-        {!isLoading && (
-          <div>
-            {data?.map((post) => (
-              <div key={post.id}>{post.content}</div>
-            ))}
-          </div>
-        )}
       </main>
     </>
   );
