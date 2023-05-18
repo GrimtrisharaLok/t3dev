@@ -10,6 +10,9 @@ import { appRouter } from "@/server/api/root";
 import superjson from "superjson";
 import Image from "next/image";
 import { PostView } from "@/components/post-view";
+import { Icons } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const ProfileFeed = (props: { userId: string }) => {
   const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
@@ -18,7 +21,7 @@ const ProfileFeed = (props: { userId: string }) => {
 
   if (isLoading) return <LoadingPage />;
 
-  if (!data) return <div>An unexpected error has occured</div>;
+  if (!data || data.length === 0) return <div>User has not posted</div>;
 
   return (
     <div className="flex flex-col">
@@ -45,17 +48,22 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
       </Head>
       {/* dark:from-[#2e026d] dark:to-[#15162c] */}
       <PageLayout>
-        <div className="relative h-48 border-b border-slate-400 bg-slate-600">
+        <div className="relative h-48 border-b border-slate-400 bg-slate-300 dark:bg-slate-600">
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="ml-4 mt-4">
+              <Icons.home />
+            </Button>
+          </Link>
           <Image
             src={data.profileImageUrl}
             alt={`${data.username}'s profile image`}
             width={128}
             height={128}
-            className="absolute bottom-0 left-0 -m-16 ml-6 rounded-full border-4 border-black"
+            className="absolute bottom-0 left-0 -m-16 ml-6 rounded-full border-4 border-white dark:border-black"
           />
         </div>
         <div className="h-16" />
-        <div className="p-6 text-2xl font-bold text-slate-200">{`@${data.username}`}</div>
+        <div className="p-6 text-2xl font-bold text-slate-700 dark:text-slate-200">{`@${data.username}`}</div>
         <div className="w-full border-b border-slate-400" />
         <ProfileFeed userId={data.id} />
       </PageLayout>
